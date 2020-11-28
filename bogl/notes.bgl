@@ -1,0 +1,173 @@
+-- BoGL is a functional language for board games, from Oregon State
+-- It looks vaguely like Haskell, but it is not
+-- These are my notes from the tutorial
+-- Web interpreter: https://bogl.engr.oregonstate.edu/
+-- Tutorial: https://aidenjn.github.io/bogl-docs/tutorials/
+-- Description: https://eecs.oregonstate.edu/project-showcase/projects/?id=WqakPcNwHpOF7k2u
+
+game SimplestProgram
+
+-- Normal enumeration types
+type TossResult = {Heads, Tails}
+type CardSuit = {Diamond, Club, Heart, Spade}
+type PlayerColor = {Blue, Red, Green, Yellow}
+type DiceResult = {One, Two, Three, Four, Five, Six}
+type ChessPiece = {Pawn, Bishop, Knight, Rook, Queen, King}
+type ClueCharacter = {MissScarlett, ColonelMustard, MrsWhite, ReverendGreen, MrsPeacock, ProfessorPlum}
+type Rank = {Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace}
+type Suit = {Spade, Heart, Diamond, Club}
+type ClassicIceCreamFlavor = {Vanilla, Chocolate, Strawberry}
+type WaterValveState = {Open, Closed}
+type StateOfMatter = {Solid, Liquid, Gas, Plasma}
+type ClothingArticle = {Shirt, Pants, Hat, Shoe, Jacket, Scarf, Glove}
+type QuestionAnswer = {Yes} -- You are allowed to create a type that has only one possible value.
+
+-- Types based off of the built in types
+type TrueFalseQuestionAnswer = Bool -- Possible values are True and False
+type Score = Int -- Possible values are any integer
+
+-- Board type
+type TicTacToeSquare = {O, X, Unmarked} -- Board square type
+type Board = Array(3, 3) of TicTacToeSquare -- Board definition
+
+-- Tuple types
+type Coordinate = (Int, Int)
+type Card = (Rank, Suit) 
+type Hand = (Card, Card, Card, Card, Card) 
+type Player = (PlayerColor, Hand, Score)
+
+-- Extended types
+type IceCreamFlavor = ClassicIceCreamFlavor & {Mint, BirthdayCake, BubbleGum, Coffee} -- Extended type
+type CanastaCard = Card & {Joker} -- Extended type
+type GamePiece = ChessPiece & ClueCharacter -- Type extended with another type.
+
+-- Input type must be defined
+type Input = Coordinate
+
+-- Values
+x : Int
+x = 4
+
+coin : TossResult 
+coin = Heads
+
+-- Functions
+f : Int -> Int
+f(x) = 2 * x
+
+clubCard : Rank -> Card
+clubCard(rank) = (rank, Club)
+
+f1 : (Int, Int) -> Int
+f1(a, b) = a + b
+
+f2 : (Int, Int, Int, Int, Int, Int) -> Int
+f2(a, b, c, d, e, f) = a + b + c + d + e + f
+
+f3 : Coordinate -> Int
+f3(a, b) = a*a + b*b
+
+-- Math
+add : (Int, Int) -> Int
+add(a, b) = a + b
+
+sub : (Int, Int) -> Int
+sub(a, b) = a - b
+
+mul : (Int, Int) -> Int
+mul(a, b) = a * b
+
+div : (Int, Int) -> Int
+div(a, b) = a / b
+
+-- Compare
+eq : (Int, Int) -> Bool
+eq(a, b) = a == b
+
+neq : (Int, Int) -> Bool
+neq(a, b) = a /= b
+
+lt : (Int, Int) -> Bool
+lt(a, b) = a < b
+
+gt : (Int, Int) -> Bool
+gt(a, b) = a > b
+
+lte : (Int, Int) -> Bool
+lte(a, b) = a <= b
+
+gte : (Int, Int) -> Bool
+gte(a, b) = a >= b
+
+-- Logical
+both : (Bool, Bool) -> Bool
+both(a, b) = and(a, b)
+
+either : (Bool, Bool) -> Bool
+either(a, b) = or(a, b)
+
+op : Bool -> Bool
+op(a) = not(a)
+
+-- local variable, let
+six : Int
+six = let a = 1 in
+      let b = 2 in
+      let c = 3 in
+      a + b + c
+
+-- if/then/else
+determineFirstPlayer : TossResult -> Int
+determineFirstPlayer(coinSide) = 
+    if coinSide == Heads 
+        then 1 
+        else 2
+
+-- loops
+count : Int -> Int
+count(x) = while x < 10 do x + 1
+
+-- counts to zero, and returns (0,b)
+-- Context is for an (Int,Bool) tuple named (i,b)
+ncount : (Int,Bool) -> (Int,Bool)
+ncount(i,b) = while i > 0 do (i-1,b)
+
+-- Context is for an Int named 'x'
+a : Int
+a = let x = 5 in while x < 20 do x * 2
+
+-- Only final context changes in while loop
+d : (Int,Bool) -> Int          -- 1st context, (Int,Bool) named (i,b)
+d(i,b) = let x = True in       -- 2nd context, Bool named x
+         let z = 5 in          -- final context, Int named z
+         while z > 0 do z - 1  -- and so our while produces an Int, only changing 'z'
+
+-- get the 2nd element
+snd : (Int,Int) -> Int
+snd(a,b) = b
+
+-- takes a num and 1, and returns the 2nd element of the while result
+factComplex : (Int,Int) -> Int
+factComplex(num,prod) = snd(while num > 1 do (num - 1, prod * num))
+
+-- our new factorial function w/ a single parameter
+factorial : Int -> Int
+factorial(num) = factComplex(num,1)
+
+-- board
+b1 : Board
+b1!(x,y) = Unmarked -- Board equation defining the values for all positions on the board 
+b1!(1,1) = O  -- Board equation defining the value for position (1, 1)
+b1!(1,2) = X -- Board equation defining the value for position (1, 2)
+
+getBoard : (Board, Int, Int) -> TicTacToeSquare
+getBoard(b, x, y) = b!(x,y)
+
+setBoard : (Board, Int, Int, TicTacToeSquare) -> Board
+setBoard(b, x, y, t) = place(t, b, (x, y))
+
+winningX : (Board, Int) -> Bool
+winningX(b, c) = inARow(c, X, b)
+
+countX : (Board) -> Int
+countX(b) = countBoard(X, b)
